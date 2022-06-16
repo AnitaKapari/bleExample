@@ -29,19 +29,42 @@ import {
   Image,
   ImageBackground
 } from 'react-native';
+import { Svg, Line, Polyline, Polygon, Path } from 'react-native-svg';
 
 import {
   Colors,
 } from 'react-native/Libraries/NewAppScreen';
-import  FontAwesome from 'react-native-vector-icons/FontAwesome';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 import BleManager from '../util/BleManager';
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
+import { Dropdown } from 'react-native-element-dropdown';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 
 const { width } = Dimensions.get("window");
-
+const data = [
+  { label: 'B', value: "100,242 100,293 100,242 120,242"},
+  { label: 'C', value:   "100,160 100,293 100,160 70,160 " },
+  { label: 'D', value: "100,90 100,293 100,90 90,70 " },
+  { label: 'E', value: "100,105 100,293 100,105 222,105  222,105 222,90 " }, 
+];
 export default BleList = () => {
+
+  const [value, setValue] = useState("");
+    const [isFocus, setIsFocus] = useState(false);
+
+    const renderLabel = () => {
+      if (value || isFocus) {
+        return (
+          <Text style={[styles.label, isFocus && { color: 'blue' }]}>
+            Dropdown label
+          </Text>
+        );
+      }
+      return null;
+    };
+
   const [isScanning, setIsScanning] = useState(false);
   const peripherals = new Map();
   const [list, setList] = useState([]);
@@ -143,10 +166,10 @@ export default BleList = () => {
         "Wait for connect Ble....",
         ToastAndroid.LONG,
       );
-     
+
       if (peripheral.connected) {
         BleManager.disconnect(peripheral.id);
-        
+
       } else {
         BleManager.connect(peripheral.id).then(() => {
           let p = peripherals.get(peripheral.id);
@@ -185,7 +208,7 @@ export default BleList = () => {
         });
       }
     }
-  } 
+  }
 
   const handleDisconnectedPeripheral = (data) => {
     let peripheral = peripherals.get(data.peripheral);
@@ -194,7 +217,7 @@ export default BleList = () => {
       peripherals.set(peripheral.id, peripheral);
       setList(Array.from(peripherals.values()));
     }
-     alert("Disconnected from this Device " + data.peripheral)
+    alert("Disconnected from this Device " + data.peripheral)
   }
   useEffect(() => {
     BleManager.start({ showAlert: false });
@@ -273,51 +296,79 @@ export default BleList = () => {
                 onDismiss={toggleModalVisibility}>
                 <View style={styles.viewWrapper}>
                   <View style={styles.modalView}>
-                  {(list.length == 0) &&
-                    <View style={{ flex: 1, margin: 20 }}>
-                      <Text style={{ textAlign: 'center' }}>No peripherals</Text>
-                    </View>
-                  } 
-                  <ScrollView>
-                  <FlatList
-                      data={list}
-                      renderItem={({ item }) => renderItem(item)}
-                      keyExtractor={item => item.id}
-                      ItemSeparatorComponent={ItemDivider}
-                    />
-                  </ScrollView>
+                    {(list.length == 0) &&
+                      <View style={{ flex: 1, margin: 20 }}>
+                        <Text style={{ textAlign: 'center' }}>No peripherals</Text>
+                      </View>
+                    }
+                    <ScrollView>
+                      <FlatList
+                        data={list}
+                        renderItem={({ item }) => renderItem(item)}
+                        keyExtractor={item => item.id}
+                        ItemSeparatorComponent={ItemDivider}
+                      />
+                    </ScrollView>
                     <Button title="Close" onPress={toggleModalVisibility} />
 
                   </View>
                 </View>
               </Modal>
             </View>
+            {renderLabel()}
+            <Dropdown
+              style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
+              placeholderStyle={styles.placeholderStyle}
+              selectedTextStyle={styles.selectedTextStyle}
+              inputSearchStyle={styles.inputSearchStyle}
+              iconStyle={styles.iconStyle}
+              data={data}
+              search
+              maxHeight={300}
+              labelField="label"
+              valueField="value"
+              placeholder={!isFocus ? 'Select Site' : '...'}
+              searchPlaceholder="Search..."
+              value={value}
+              onFocus={() => setIsFocus(true)}
+              onBlur={() => setIsFocus(false)}
+              onChange={item => {
+                setValue(item.value);
+                setIsFocus(false);
+              }}
+              renderLeftIcon={() => (
+                <AntDesign
+                  style={styles.icon}
+                  color={isFocus ? 'blue' : 'black'}
+                  name="Safety"
+                  size={20}
+                />
+              )}
+            />
 
-            {/*  <View style={{ margin: 10 }}>
-                  <Button title="Retrieve connected peripherals" onPress={() => retrieveConnected()} />
+            <View style={{ height: 400 }}>
+              <ImageBackground source={require('../assets/images/mapImg.png')}
+                resizeMode="cover" style={{ flex: 1, padding: 5 }}>
+                <View style={{ position: 'relative', top: 320, left: 90 }}>
+                  <FontAwesome
+                    name="user"
+                    size={30}
+                    style
+                  />
                 </View>
-              
-                {/* {(list.length == 0) &&
-                  <View style={{ flex: 1, margin: 20 }}>
-                    <Text style={{ textAlign: 'center' }}>No peripherals</Text>
-                  </View>
-                }
-  */ }
-            <View style={{height:400}}>
-            <ImageBackground  source={require('../assets/images/mallMap.jpg')}
-            resizeMode="cover" style={{flex: 1,padding:5}}>
-            <FontAwesome
-            name="user"
-            size={30}
-        />
-            <FontAwesome
-            name="location-arrow"
-            size={30}
-        />
-       
-          </ImageBackground>
-            </View>        
-              </View>
+                <Svg width="500"
+                height="500">
+                <Polyline
+                  points={value}
+                  stroke="red"
+                  strokeWidth="4"
+                />
+
+              </Svg>
+
+              </ImageBackground>
+            </View>
+          </View>
         </ScrollView>
 
       </SafeAreaView>

@@ -13,7 +13,9 @@
     "react": "17.0.2",
     "react-native": "0.68.2",
     "react-native-ble-manager": "^8.3.0",
+    "react-native-element-dropdown": "^2.0.0",
     "react-native-paper": "^4.12.1",
+    "react-native-svg": "^12.3.0",
     "react-native-vector-icons": "^9.1.0"
   },
   "devDependencies": {
